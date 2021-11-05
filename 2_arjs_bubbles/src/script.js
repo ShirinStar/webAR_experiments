@@ -25,19 +25,12 @@ async function initWebcam(videoElement) {
 const videoElement = document.getElementById('video');
 initWebcam(videoElement);
 
+//apply the webcam view to texture
 const videoTexture = new THREE.VideoTexture(videoElement);
-
-const sizes = {
-  width: window.innerWidth,
-  height: window.innerHeight
-}
 
 const canvas = document.querySelector('.webgl')
 
 const scene = new THREE.Scene();
-
-// const axesHelper = new THREE.AxesHelper(1);
-// scene.add(axesHelper);
 
 //lights
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
@@ -52,6 +45,12 @@ directionalLight.shadow.camera.near = .1
 directionalLight.shadow.camera.far = 50
 directionalLight.shadow.radius = 50
 scene.add(directionalLight)
+
+
+const sizes = {
+  width: window.innerWidth,
+  height: window.innerHeight
+}
 
 const camera = new THREE.PerspectiveCamera(75, sizes.width * 2 / sizes.height, 0.1, 1000);
 camera.position.z = 5
@@ -76,7 +75,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap
 const arToolkitSource = new THREEx.ArToolkitSource({
   sourceType: 'webcam',
 
-//   //uncomment these to fix camera view on mobile.
+//uncomment these to fix camera view on mobile.
   sourceWidth: sizes.height,
   sourceHeight: sizes.width,
 
@@ -109,7 +108,6 @@ window.addEventListener('resize', function () {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 });
 
-
 //setup arToolkitContext
 const arToolkitContext = new THREEx.ArToolkitContext({
   cameraParametersUrl: 'camera_para.dat', //from https://github.com/jeromeetienne/AR.js/blob/master/data/data/camera_para.dat
@@ -130,7 +128,6 @@ scene.add(markerRoot);
 let markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
   type: 'pattern',
   patternUrl: "pattern-marker2.patt", //https://jeromeetienne.github.io/AR.js/three.js/examples/marker-training/examples/generator.html
-  // hangeMatrixMode: 'cameraTransformMatrix'
 })
 
 //scene content
@@ -147,6 +144,7 @@ floorMesh.rotation.x = Math.PI / 2
 floorMesh.position.y = 0
 floorMesh.receiveShadow = true
 
+//bubbles
 const bubbleMaterial = new THREE.ShaderMaterial({
   vertexShader: vertex,
   fragmentShader: fragment,
@@ -172,11 +170,10 @@ const createBubble = (radius, position) => {
 
   bubble.castShadow = true
   bubble.position.copy(position)
-  // scene.add(bubble)
+
   markerRoot.add(bubble);
 
   bubblesToUpdate.push(bubble)
-  console.log(bubblesToUpdate);
 }
 
 
