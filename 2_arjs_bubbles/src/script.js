@@ -3,11 +3,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import vertex from './shader/vertex.glsl'
 import fragment from './shader/fragment.glsl'
 
-
-//2. matalic material + webcame envmap
-//3. iniit new sphere every few sec
-//4. move it up and with rotation
-//5. shadows
+const bubblesToUpdate = []
+let bubble = null;
 
 //Initializes a webcam video stream for an HTML video element
 async function initWebcam(videoElement) {
@@ -39,10 +36,24 @@ const canvas = document.querySelector('.webgl')
 
 const scene = new THREE.Scene();
 
-const axesHelper = new THREE.AxesHelper(1);
-scene.add(axesHelper);
+// const axesHelper = new THREE.AxesHelper(1);
+// scene.add(axesHelper);
 
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000);
+//lights
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+scene.add(ambientLight)
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5)
+directionalLight.position.set(1, 2, 0)
+directionalLight.castShadow = true
+directionalLight.shadow.mapSize.width = 1024
+directionalLight.shadow.mapSize.height = 1024
+directionalLight.shadow.camera.near = .1
+directionalLight.shadow.camera.far = 50
+directionalLight.shadow.radius = 50
+scene.add(directionalLight)
+
+const camera = new THREE.PerspectiveCamera(75, sizes.width * 2 / sizes.height, 0.1, 1000);
 camera.position.z = 5
 scene.add(camera);
 
@@ -57,32 +68,33 @@ const renderer = new THREE.WebGLRenderer({
 
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
 //AR.JS
 // setup arToolkitSource
-// const arToolkitSource = new THREEx.ArToolkitSource({
-//   sourceType: 'webcam',
+const arToolkitSource = new THREEx.ArToolkitSource({
+  sourceType: 'webcam',
 
 //   //uncomment these to fix camera view on mobile.
-//   sourceWidth: sizes.height,
-//   sourceHeight: sizes.width,
+  sourceWidth: sizes.height,
+  sourceHeight: sizes.width,
 
-//   displayWidth: sizes.width,
-//   displayHeight: sizes.height,
-// });
+  displayWidth: sizes.width,
+  displayHeight: sizes.height,
+});
 
-// const onResize = () => {
-//   arToolkitSource.onResize()
-//   arToolkitSource.copySizeTo(canvas)
-//   if (arToolkitContext.arController !== null) {
-//     arToolkitSource.copySizeTo(arToolkitContext.arController.canvas)
-//   }
-// }
+const onResize = () => {
+  arToolkitSource.onResize()
+  arToolkitSource.copySizeTo(canvas)
+  if (arToolkitContext.arController !== null) {
+    arToolkitSource.copySizeTo(arToolkitContext.arController.canvas)
+  }
+}
 
-// arToolkitSource.init(function onReady() {
-//   onResize()
-// });
+arToolkitSource.init(function onReady() {
+  onResize()
+});
 
 // handle resize event
 window.addEventListener('resize', function () {
@@ -98,17 +110,16 @@ window.addEventListener('resize', function () {
 });
 
 
-// setup arToolkitContext
-// const arToolkitContext = new THREEx.ArToolkitContext({
-//   cameraParametersUrl: 'camera_para.dat', //from https://github.com/jeromeetienne/AR.js/blob/master/data/data/camera_para.dat
-//   detectionMode: 'mono_and_matrix',
-
-// });
+//setup arToolkitContext
+const arToolkitContext = new THREEx.ArToolkitContext({
+  cameraParametersUrl: 'camera_para.dat', //from https://github.com/jeromeetienne/AR.js/blob/master/data/data/camera_para.dat
+  detectionMode: 'mono_and_matrix',
+});
 
 // copy projection matrix to camera when initialization complete
-// arToolkitContext.init(function onCompleted() {
-//   camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
-// });
+arToolkitContext.init(function onCompleted() {
+  camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
+});
 
 
 // setup markerRoots
@@ -116,14 +127,26 @@ window.addEventListener('resize', function () {
 const markerRoot = new THREE.Group();
 scene.add(markerRoot);
 
-// let markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
-//   type: 'pattern',
-//   patternUrl: "arjs-marker.patt", //https://jeromeetienne.github.io/AR.js/three.js/examples/marker-training/examples/generator.html
-//   // hangeMatrixMode: 'cameraTransformMatrix'
-// })
+let markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
+  type: 'pattern',
+  patternUrl: "pattern-marker2.patt", //https://jeromeetienne.github.io/AR.js/three.js/examples/marker-training/examples/generator.html
+  // hangeMatrixMode: 'cameraTransformMatrix'
+})
 
 //scene content
-const bubbleGeometry = new THREE.SphereGeometry(1, 32, 32);
+//invisble floor to receive shadow
+const floorGeometry = new THREE.PlaneBufferGeometry(500, 500);
+const floorMaterial = new THREE.MeshStandardMaterial({
+  side: THREE.DoubleSide,
+  transparent: true,
+  opacity: 0.1
+})
+
+const floorMesh = new THREE.Mesh(floorGeometry, floorMaterial)
+floorMesh.rotation.x = Math.PI / 2
+floorMesh.position.y = 0
+floorMesh.receiveShadow = true
+
 const bubbleMaterial = new THREE.ShaderMaterial({
   vertexShader: vertex,
   fragmentShader: fragment,
@@ -136,27 +159,47 @@ const bubbleMaterial = new THREE.ShaderMaterial({
     uBias: { value: 0.1 },
     uPower: { value: 2.0 },
     uScale: { value: 1.0 },
-    // envMap: { value: cubeCamera.renderTarget.texture}
   },
   transparent: true,
   // side: THREE.DoubleSide
-});
+})
 
-const bubble = new THREE.Mesh(bubbleGeometry, bubbleMaterial);
+const createBubble = (radius, position) => {
+  bubble = new THREE.Mesh(
+    new THREE.SphereGeometry(1.5, 32, 32),
+    bubbleMaterial
+  )
 
-scene.add(bubble)
-// markerRoot.add(mesh);
+  bubble.castShadow = true
+  bubble.position.copy(position)
+  // scene.add(bubble)
+  markerRoot.add(bubble);
 
-// const update = () => {
-//   // update artoolkit on every frame
-//   if (arToolkitSource.ready !== false) {
-//     arToolkitContext.update(arToolkitSource.domElement)
-//   }
-// }
+  bubblesToUpdate.push(bubble)
+  console.log(bubblesToUpdate);
+}
+
+
+function addbubble() {
+  createBubble(Math.random() - 0.5, { x: Math.random() - 0.5, y: -0.5, z: Math.random() - 0.1 })
+  if (bubblesToUpdate.length < 10) {
+    setTimeout(addbubble, 8000);
+  }
+}
+addbubble();
+
+markerRoot.add(floorMesh)
+
+const update = () => {
+  // update artoolkit on every frame
+  if (arToolkitSource.ready !== false) {
+    arToolkitContext.update(arToolkitSource.domElement)
+  }
+}
 
 const render = () => {
   renderer.render(scene, camera);
-  
+
 }
 
 const clock = new THREE.Clock()
@@ -164,12 +207,16 @@ const clock = new THREE.Clock()
 const animate = () => {
 
   const elapsedTime = clock.getElapsedTime()
-  bubbleMaterial.uniforms.uTime.value = elapsedTime * 0.2
 
+  bubbleMaterial.uniforms.uTime.value = elapsedTime 
+ 
+  for (const bubble of bubblesToUpdate) {
+     bubble.position.y += 0.01
+  }
   controls.update()
 
   requestAnimationFrame(animate);
-  // update();
+  update();
   render();
 }
 
