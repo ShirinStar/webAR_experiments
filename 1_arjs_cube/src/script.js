@@ -77,19 +77,18 @@ arToolkitContext.init(function onCompleted() {
 });
 
 
-// setup markerRoots
-// build markerControls
+// setup markerRoots and build markerControls
 const markerRoot = new THREE.Group();
 scene.add(markerRoot);
 
 let markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
   type: 'pattern',
-  patternUrl: "arjs-marker.patt", //https://jeromeetienne.github.io/AR.js/three.js/examples/marker-training/examples/generator.html
+  patternUrl: "pattern-1.patt", //https://jeromeetienne.github.io/AR.js/three.js/examples/marker-training/examples/generator.html
   hangeMatrixMode: 'cameraTransformMatrix'
 })
 
 //scene content
-const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+const geometry = new THREE.BoxBufferGeometry(2, 2, 2);
 const material = new THREE.MeshNormalMaterial({
   transparent: true,
   opacity: 0.5,
@@ -98,7 +97,7 @@ const material = new THREE.MeshNormalMaterial({
 
 const mesh = new THREE.Mesh(geometry, material);
 // mesh.position.y = 0.5;
-mesh.rotation.x = Math.PI / 4
+// mesh.rotation.x = Math.PI / 2
 
 markerRoot.add(mesh);
 
