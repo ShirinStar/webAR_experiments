@@ -1,7 +1,5 @@
 import './style.css'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import vertex from './shader/vertex.glsl'
-import fragment from './shader/fragment.glsl'
 
 const canvas = document.querySelector('.webgl')
 
@@ -58,9 +56,6 @@ arToolkitSource.init(function onReady() {
     arToolkitContext.arController.addEventListener('getMarker', function (ev) {
       // marker1Pos.x = ev.data.marker.pos[0]
       // marker1Pos.y = ev.data.marker.pos[1]
-
-      // console.log(ev.data.marker);
-      // console.log(marker1Pos);
     });
   }
 });
@@ -88,6 +83,9 @@ const arToolkitContext = new THREEx.ArToolkitContext({
 arToolkitContext.init(function onCompleted() {
   camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
 });
+
+
+//scene
 
 let markerRootArray = [];
 let meshArray = [];
