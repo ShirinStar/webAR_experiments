@@ -7,11 +7,6 @@ const canvas = document.querySelector('.webgl')
 
 const scene = new THREE.Scene();
 
-let sceneGroup;
-
-let marker1Pos = new THREE.Vector2();
-let marker2Pos = new THREE.Vector2();
-
 //lights
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
 scene.add(ambientLight)
@@ -22,7 +17,7 @@ const sizes = {
 }
 
 const camera = new THREE.PerspectiveCamera(75, sizes.width * 2 / sizes.height, 0.1, 1000);
-camera.position.z = 5
+camera.position.z = 1
 scene.add(camera);
 
 const renderer = new THREE.WebGLRenderer({
@@ -87,7 +82,6 @@ window.addEventListener('resize', function () {
 const arToolkitContext = new THREEx.ArToolkitContext({
   cameraParametersUrl: 'camera_para.dat', //from https://github.com/jeromeetienne/AR.js/blob/master/data/data/camera_para.dat
   detectionMode: 'mono',
-	maxDetectionRate: 30,
 });
 
 // copy projection matrix to camera when initialization complete
@@ -95,99 +89,46 @@ arToolkitContext.init(function onCompleted() {
   camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
 });
 
-// setup markerRoots
-let markerNames = ["6", "7"]
-let markerArray = []
-let markerRoot;
+let markerRootArray = [];
+let meshArray = [];
 
-for (let i = 0; i < markerNames.length; i++) {
-  markerRoot = new THREE.Group()
-  scene.add(markerRoot)
+let patternArray = ["6", "7"];
+let colorArray = [0xff0000, 0x00ff00];
 
-  markerArray.push(markerRoot);
+for (let i = 0; i < patternArray.length; i++) {
+  let markerRoot = new THREE.Group();
+  scene.add(markerRoot);
 
-  let markerControlsOne = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
+  let markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
     type: 'pattern',
-    patternUrl: "pattern-" + markerNames[i] + ".patt", //https://jeromeetienne.github.io/AR.js/three.js/examples/marker-training/examples/generator.html
-  })
-  let markerGroup = new THREE.Group();
-  markerRoot.add(markerGroup);
+    patternUrl: "pattern-" + patternArray[i] + ".patt",
+  });
+
+  let mesh = new THREE.Mesh(
+    new THREE.BoxBufferGeometry(2, 2, 2),
+    new THREE.MeshBasicMaterial({
+      color: colorArray[i],
+      transparent: true,
+      opacity: 0.5
+    })
+  );
+  mesh.position.y = -1.25 / 2;
+  markerRoot.add(mesh);
+
+  markerRootArray.push(markerRoot);
+  meshArray.push(mesh);
 }
-
-// console.log(markerArray[0].children);
-
-//scene content
-sceneGroup = new THREE.Group();
-
-let geo1 = new THREE.BoxBufferGeometry(5, 5, 3)
-let material1 = new THREE.MeshBasicMaterial({ color: 0x00ff00 })
-let box1 = new THREE.Mesh(geo1, material1)
-
-sceneGroup.add(box1)
-
-let material2 = new THREE.MeshBasicMaterial({ color: 0xff0000 })
-let box2 = new THREE.Mesh(geo1, material2)
-box2.position.x = 2
-sceneGroup.add(box2)
-
-
-  //markerArray[0].children.push(sceneGroup);
-  let currentMarkerName = markerNames[0];
-
 
 
 const update = () => {
-  let anyMarkerVisible = false;
-	for (let i = 0; i < markerArray.length; i++)
-	{
-		if ( markerArray[i].visible )
-		{
-			anyMarkerVisible = true;
-			markerArray[i].children[0].add( sceneGroup );
-			if ( currentMarkerName != markerNames[i] )
-			{
-				currentMarkerName = markerNames[i];
-				// console.log("Switching to " + currentMarkerName);
-			}
-			
-			let p = markerArray[i].children[0].getWorldPosition();
-			let q = markerArray[i].children[0].getWorldQuaternion();
-			let s = markerArray[i].children[0].getWorldScale();
-			let lerpAmount = 0.5;
-			
-			scene.add(sceneGroup);
-			sceneGroup.position.lerp(p, lerpAmount);
-			sceneGroup.quaternion.slerp(q, lerpAmount);
-			sceneGroup.scale.lerp(s, lerpAmount);
 
-			break;
-		}
-	}
+  for (let i = 0; i < patternArray.length-1; i++) {
+    meshArray[i].visible = false;
+  }
 
-	if ( !anyMarkerVisible )
-	{
-		anyMarkerVisible = false;
-    console.log("No marker currently visible.");
-	}
-	
-	let baseMarker = markerArray[0];
-	
-	// update relative positions of markers
-	for (let i = 1; i < markerArray.length; i++)
-	{
-		let currentMarker = markerArray[i];
-		let currentGroup  = currentMarker.children[0];
-		if ( baseMarker.visible && currentMarker.visible )
-		{
-			// console.log("updating marker " + i " -> base offset");
-			
-			let relativePosition = currentMarker.worldToLocal( baseMarker.position.clone() );
-			currentGroup.position.copy( relativePosition );
-			
-			let relativeRotation = currentMarker.quaternion.clone().inverse().multiply( baseMarker.quaternion.clone() );
-			currentGroup.quaternion.copy( relativeRotation );
-		}
-	}
+  if (markerRootArray[0].visible) meshArray[0].visible = true;
+  else if (markerRootArray[1].visible) meshArray[1].visible = true;
+
   // update artoolkit on every frame
   if (arToolkitSource.ready !== false) {
     arToolkitContext.update(arToolkitSource.domElement)
