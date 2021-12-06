@@ -102,7 +102,6 @@ const textureLoader = new THREE.TextureLoader()
 const texture = textureLoader.load('./tiles.jpeg')
 let insideBoxMaterial	= new THREE.MeshBasicMaterial({
 	transparent : true,
-  // color: 0xff0000,
 	map: texture,
 	side: THREE.BackSide //rendering only in the inside geo
 }); 
@@ -199,21 +198,6 @@ invisbleBox.scale.set(1, 1, 1).multiplyScalar(1.01);
 invisbleBox.rotation.x = Math.PI * 0.25
 
 markerRoot.add(invisbleBox);
-
-//flower model inside the box
-//   const gltfLoader = new GLTFLoader()
-
-//   gltfLoader.load(
-//     '/tulip.glb',
-//     (gltf) =>
-//     {
-//       gltf.scene.rotation.x = Math.PI * 0.25
-//       gltf.scene.position.z =1
-//       gltf.scene.position.y =1
-//       gltf.scene.scale.set(0.25, 0.25, 0.25)
-//       markerRoot.add(gltf.scene)
-//     }
-// )
 
 const update = () => {
   // update artoolkit on every frame
