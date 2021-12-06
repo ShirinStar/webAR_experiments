@@ -1,6 +1,6 @@
 import './style.css'
 
-let markerAppeared = false; 
+let markerAppeared = 0; 
 
 const sizes = {
   width: window.innerWidth,
@@ -118,14 +118,14 @@ const animate = () => {
 
   //checking lost/found marker after showing once
   if(markerRoot.visible) {
-    markerAppeared = true
+    markerAppeared = 1
     //vibration activate
-    navigator.vibrate(100);
+    //navigator.vibrate(100);
   }
-  if(markerRoot.visible && markerAppeared) {
+  if(markerRoot.visible && markerAppeared === 1) {
     textNotification.style.display = 'none'
   } 
-  if(!markerRoot.visible && markerAppeared) {
+  if(!markerRoot.visible && markerAppeared === 1) {
     textNotification.style.display = 'block'
   } 
 }
