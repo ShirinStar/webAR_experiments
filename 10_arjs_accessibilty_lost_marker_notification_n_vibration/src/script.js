@@ -8,9 +8,7 @@ const sizes = {
 }
 
 const canvas = document.querySelector('.webgl')
-
 const scene = new THREE.Scene();
-
 // const axesHelper = new THREE.AxesHelper(0.2);
 // scene.add( axesHelper );
 
