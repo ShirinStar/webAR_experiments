@@ -1,4 +1,9 @@
 import './style.css'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+
+import fragmentShader from './shaders/fragment.glsl'
+import vertexShader from './shaders/vertex.glsl'
+import gsap from 'gsap'
 
 let markerAppeared = false; 
 
@@ -15,8 +20,11 @@ const scene = new THREE.Scene();
 const textNotification = document.querySelector('.notification')
 
 const camera = new THREE.PerspectiveCamera(75, sizes.width * 2 / sizes.height, 0.1, 1000);
-camera.position.z = 1
+camera.position.z = 5
 scene.add(camera);
+
+const controls = new OrbitControls(camera, canvas)
+controls.enableDamping = true
 
 const renderer = new THREE.WebGLRenderer({
   canvas: canvas,
@@ -87,15 +95,34 @@ let markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
   patternUrl: "pattern-10.patt", //https://jeromeetienne.github.io/AR.js/three.js/examples/marker-training/examples/generator.html
 })
 
+const colorObject = {}
+colorObject.depthColor = '#186691'
+colorObject.surfaceColor = '#8888ff'
+
 //scene content
-const geometry = new THREE.BoxBufferGeometry(2, 2, 2);
-const material = new THREE.MeshNormalMaterial({
-  transparent: true,
-  opacity: 0.7,
-  side: THREE.DoubleSide
-});
+const geometry = new THREE.SphereGeometry(2, 32, 32);
+const material = new THREE.ShaderMaterial({
+  side: THREE.DoubleSide,
+  fragmentShader: fragmentShader,
+  vertexShader: vertexShader, 
+  
+  uniforms: {
+    uTime : {value:0},
+    uBigWaveElevation: {value: 0.5},
+    uBigWaveFreq:  { value: new THREE.Vector2(4, 1.5) } ,
+    uBigWaveSpeed: {value: 0.75},
+
+    uVibration: {value: 0},
+
+    uDepthColor: {value: new THREE.Color(colorObject.depthColor)},
+    uSurfaceColor: {value: new THREE.Color(colorObject.surfaceColor)},
+    uColorOffset: {value: 0.08},
+    uColorMultiple: {value: 2}
+  }
+})
 
 const mesh = new THREE.Mesh(geometry, material);
+//scene.add(mesh)
 markerRoot.add(mesh);
 
 const update = () => {
@@ -109,7 +136,16 @@ const render = () => {
   renderer.render(scene, camera);
 }
 
+const clock = new THREE.Clock()
+
 const animate = () => {
+
+  const elapsedTime = clock.getElapsedTime()
+
+  controls.update()
+
+  material.uniforms.uTime.value = elapsedTime
+
   requestAnimationFrame(animate);
   update();
   render();
@@ -119,6 +155,16 @@ const animate = () => {
     markerAppeared = true
     //vibration activate
     navigator.vibrate(100);
+    gsap.to(material.uniforms.uVibration, {
+      duration: 3,
+      value: 1,
+      ease: "power2.inOut"
+    })
+    gsap.to(material.uniforms.uVibration, {
+      duration: 1,
+      delay: 2.5,
+      value: 0
+    })
   }
   if(markerRoot.visible && markerAppeared) {
     textNotification.style.display = 'none'
