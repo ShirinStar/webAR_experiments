@@ -4,7 +4,9 @@ varying vec2 vUv;
 
 void main()
 {   
-   
+   ///add mix function so it wont be such a rough transiton
+    //vec3 color = mix(ucolor, newcolor, videocolor.r -- this needs to be float);
+
     vec4 videoColor = texture2D( uTexture ,vUv );
 
     vec3 newColor = uColor;

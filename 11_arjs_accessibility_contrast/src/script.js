@@ -158,8 +158,6 @@ fontLoader.load(
 )
 
 
-
-
 const update = () => {
   // update artoolkit on every frame
   if (arToolkitSource.ready !== false) {
