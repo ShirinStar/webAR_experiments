@@ -115,7 +115,7 @@ let markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
 })
 
 const colorObject = {}
-colorObject.color = '#186691'
+colorObject.color = '#ffffff'
 
 const textMaterial = new THREE.ShaderMaterial({
   vertexShader: vertex,
@@ -135,7 +135,7 @@ fontLoader.load(
   (font) => {
      const textGeometry = new THREE.TextGeometry('can you see me?', {
       font: font,
-      size: 1.5,
+      size: 2.5,
       height: 0.1,
       curveSegments: 0.1,
       bevelSize: 0.02,
@@ -151,9 +151,9 @@ fontLoader.load(
       - (textGeometry.boundingBox.max.z - 0.03) * 0.5  // Subtract bevel thickness
   )
 
-    Mesh.rotation.x = -Math.PI / 2
-  
-    markerRoot.add(Mesh)
+   // Mesh.rotation.x = -Math.PI / 2
+    scene.add(Mesh)
+    // markerRoot.add(Mesh)
   }
 )
 

@@ -7,18 +7,28 @@ void main()
    ///add mix function so it wont be such a rough transiton
     //vec3 color = mix(ucolor, newcolor, videocolor.r -- this needs to be float);
 
-    vec4 videoColor = texture2D( uTexture ,vUv );
-
+    vec4 videoColor = texture2D( uTexture , vUv + 1.5);
+    
     vec3 newColor = uColor;
-    
-    if(videoColor.r < 0.2 && videoColor.g < 0.2 && videoColor.b < 0.2) newColor.r = uColor.r * 2.;
-    if(videoColor.r < 0.2 && videoColor.g < 0.2 && videoColor.b < 0.2) newColor.g = uColor.g * 2.;
-    if(videoColor.r < 0.2 && videoColor.g < 0.2 && videoColor.b < 0.2) newColor.b = uColor.b * 2.;
+    vec3 strength = vec3(0.5);
 
-    if(videoColor.r > 0.8 && videoColor.g > 0.8 && videoColor.b > 0.8) newColor.r = uColor.r / 2.;
-    if(videoColor.r > 0.8 && videoColor.g > 0.8 && videoColor.b > 0.8) newColor.g = uColor.g / 2.;
-    if(videoColor.r > 0.8 && videoColor.g > 0.8 && videoColor.b > 0.8) newColor.b = uColor.b / 2.;
+    //if the video feed is too drak -> make the text brighter
+   
+
+    newColor.r = 1.0-step(0.6, videoColor.r);
+    newColor.g = 1.0-step(0.6, videoColor.g);
+    newColor.b = 1.0-step(0.6, videoColor.b);
+
+     if(newColor.r < 0.5 && newColor.g < 0.5 && newColor.b < 0.5) {
+     strength = vec3(0.2);
+    }
+    else {
+      strength = vec3(0.4);
+    }
     
-    gl_FragColor = vec4(newColor, 1.0);
+    float blancedColor = distance(newColor, strength);
+
+
+    gl_FragColor = vec4(vec3(blancedColor), 1.0);
   
 }
