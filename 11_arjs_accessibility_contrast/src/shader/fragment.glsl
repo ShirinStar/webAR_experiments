@@ -13,7 +13,7 @@ void main()
     newColor.g = 1.0-step(0.6, videoColor.g);
     newColor.b = 1.0-step(0.6, videoColor.b);
 
-    //if the video feed is too drak -> make the distance calc smaller/bigger
+    //if the video feed is too dark -> make the distance calc smaller/bigger
      if(newColor.r < 0.5 && newColor.g < 0.5 && newColor.b < 0.5) {
      strength = vec3(0.2);
     }

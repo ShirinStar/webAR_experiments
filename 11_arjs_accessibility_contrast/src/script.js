@@ -37,7 +37,7 @@ const sizes = {
 }
 
 const camera = new THREE.PerspectiveCamera(75, sizes.width * 2/ sizes.height, 0.1, 1000);
-camera.position.z = 20
+camera.position.z = 3
 scene.add(camera);
 
 const controls = new OrbitControls(camera, canvas)
@@ -60,8 +60,8 @@ const arToolkitSource = new THREEx.ArToolkitSource({
   sourceType: 'webcam',
 
 //uncomment these to fix camera view on mobile.
-  // sourceWidth: sizes.height,
-  // sourceHeight: sizes.width,
+  sourceWidth: sizes.height,
+  sourceHeight: sizes.width,
 
   displayWidth: sizes.width,
   displayHeight: sizes.height,
@@ -140,10 +140,10 @@ fontLoader.load(
       curveSegments: 0.1,
       bevelSize: 0.02,
     });
-    const Mesh = new THREE.Mesh(textGeometry, textMaterial)
+    const mesh = new THREE.Mesh(textGeometry, textMaterial)
     
     textGeometry.computeBoundingBox()
-    console.log(textGeometry.boundingBox)
+   
     //centering the text
     textGeometry.translate(
       - (textGeometry.boundingBox.max.x - 0.02) * 0.5, // Subtract bevel size
@@ -151,9 +151,9 @@ fontLoader.load(
       - (textGeometry.boundingBox.max.z - 0.03) * 0.5  // Subtract bevel thickness
   )
 
-   // Mesh.rotation.x = -Math.PI / 2
-    scene.add(Mesh)
-    // markerRoot.add(Mesh)
+   mesh.scale.set(0.05, 0.05, 0.05)
+    scene.add(mesh)
+    //markerRoot.add(mesh)
   }
 )
 
