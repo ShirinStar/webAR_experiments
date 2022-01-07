@@ -17,7 +17,7 @@ const material = new THREE.MeshNormalMaterial({
   side: THREE.DoubleSide
 });
 const mesh = new THREE.Mesh(geometry, material)
-mesh.position.set(0, 0, -5);
+mesh.position.set(0, 0, -10);
 scene.add(mesh)
 
 const sizes = {
