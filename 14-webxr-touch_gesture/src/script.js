@@ -1,6 +1,5 @@
 import './style.css'
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
 
 const canvas = document.querySelector('canvas.webgl')
@@ -44,13 +43,14 @@ renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.xr.enabled = true;
 
+//add controller to define position of the objects
 const controller = renderer.xr.getController(0);
 controller.addEventListener('select', onSelect);
 scene.add(controller);
 
 document.body.appendChild(ARButton.createButton(renderer));
 
-//face generating 
+//face generator 
 function onSelect() {
   const faceContainer = new THREE.Group()
   //face
@@ -118,7 +118,7 @@ function onSelect() {
   scene.add(faceContainer)
 }
 
-
+//use animation look
 function animate() {
   renderer.setAnimationLoop(render);
 }
