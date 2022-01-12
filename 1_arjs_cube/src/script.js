@@ -84,7 +84,7 @@ scene.add(markerRoot);
 let markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
   type: 'pattern',
   patternUrl: "pattern-1.patt", //https://jeromeetienne.github.io/AR.js/three.js/examples/marker-training/examples/generator.html
-  hangeMatrixMode: 'cameraTransformMatrix'
+  //make sure bg color is light grey 240 240 240
 })
 
 //scene content

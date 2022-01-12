@@ -96,7 +96,7 @@ async function initializeHitTestSource() {
   //viewer refecrence space = cordinates in relation of the device 
   const viewerSpace = await session.requestReferenceSpace("viewer")
   hitTestSource = await session.requestHitTestSource({ space: viewerSpace })
-
+  console.log(hitTestSource);
   //local space = the real coordinates of the envirnment
   //this calculation will stick the objects to the cordinated in relation to the local space
   // local space = a space that isnt changing in references to the phone 
