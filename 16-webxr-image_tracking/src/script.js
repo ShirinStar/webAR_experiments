@@ -16,7 +16,6 @@ function setupMobileDebug() {
 
 let camera, canvas, scene, renderer;
 let mesh;
-let image;
 
 init();
 animate();
@@ -26,16 +25,15 @@ async function init() {
 
   scene = new THREE.Scene();
 
-  camera = new THREE.PerspectiveCamera(
-    70,
+  camera = new THREE.PerspectiveCamera( 70,
     window.innerWidth / window.innerHeight,
     0.01,
     40
   );
 
   renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
   renderer.xr.enabled = true;
 
 
@@ -45,8 +43,9 @@ async function init() {
 
   // setup a cone mesh to put on top of the image target when it is seen
   const radius = 0.2;
-  const height = 1;
+  const height = 0.4;
   const geometry = new THREE.ConeGeometry(radius, height, 32);
+  //by defualt the image will be render in the middle, so we need to push half of the height up to be exactly on top of the img
   geometry.translate(0, height / 2, 0);
   const material = new THREE.MeshPhongMaterial({
     color: 0xffffff * Math.random(),
@@ -56,7 +55,7 @@ async function init() {
     opacity: 1
   });
   mesh = new THREE.Mesh(geometry, material);
-  mesh.matrixAutoUpdate = false; // important we have to set this to false because we'll update the position with the updateMesh() function
+  mesh.matrixAutoUpdate = false; // important we have to set this to false because we'll update the position when we track an image
   mesh.visible = false;
   scene.add(mesh);
   
@@ -70,9 +69,10 @@ async function init() {
     trackedImages: [
       {
         image: imgBitmap, // tell webxr this is the image target we want to track
-        widthInMeters: 0.7
+        widthInMeters: 0.7 // in meters what the size of the PRINTED image in the real world
       }
     ],
+    //this is for the mobile debug
     optionalFeatures: ["dom-overlay", "dom-overlay-for-handheld-ar"],
         domOverlay: {
           root: document.body
@@ -86,30 +86,19 @@ async function init() {
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 }
 
 function animate() {
   renderer.setAnimationLoop(render);
 }
 
-// async function getImageBitmap(url) {
-//   const response = await fetch(url);
-//   const blob = await response.blob();
-//   const imageBitmap = await createImageBitmap(blob);
-//   return imageBitmap;
-// };
-
-// update the cone mesh when the image target is found
-function updateMesh(pose) {
-  mesh.matrix.fromArray(pose.transform.matrix);
-}
-
 function render(timestamp, frame) {
   if (frame) {
-    const results = frame.getImageTrackingResults();
+    const results = frame.getImageTrackingResults(); //checking if there are any images we track
 
+    //if we have more than one image the results are an array 
     for (const result of results) {
       // The result's index is the image's position in the trackedImages array specified at session creation
       const imageIndex = result.index;
@@ -118,16 +107,16 @@ function render(timestamp, frame) {
       const referenceSpace = renderer.xr.getReferenceSpace();
       const pose = frame.getPose(result.imageSpace, referenceSpace);
       
+      //checking the state of the tracking
       const state = result.trackingState;
       console.log(state);
 
       if (state == "tracked") {
-        // do something when image is tracked
         console.log("Image target has been found")
         mesh.visible = true;
-        updateMesh(pose);
+        // update the cone mesh when the image target is found
+        mesh.matrix.fromArray(pose.transform.matrix);
       } else if (state == "emulated") {
-        // do something when image is lost
         mesh.visible = false; 
         console.log("Image target no longer seen")
       }
