@@ -64,6 +64,7 @@ async function init() {
   const imgBitmap = await createImageBitmap(img);
   console.log(imgBitmap);
 
+  //more on image-tracking feature: https://github.com/immersive-web/marker-tracking/blob/main/explainer.md
   const button = ARButton.createButton(renderer, {
     requiredFeatures: ["image-tracking"], // notice a new required feature
     trackedImages: [
