@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
 
 setupMobileDebug()
+
 function setupMobileDebug() {
   // for image tracking we need a mobile debug console as it only works on android
   // This library is very big so only use it while debugging - just comment it out when your app is done
@@ -25,7 +26,7 @@ async function init() {
 
   scene = new THREE.Scene();
 
-  camera = new THREE.PerspectiveCamera( 70,
+  camera = new THREE.PerspectiveCamera(70,
     window.innerWidth / window.innerHeight,
     0.01,
     40
@@ -36,29 +37,28 @@ async function init() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
   renderer.xr.enabled = true;
 
-
   const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
   light.position.set(0.5, 1, 0.25);
   scene.add(light);
 
   // setup a cone mesh to put on top of the image target when it is seen
   const radius = 0.2;
-  const height = 0.4;
+  const height = 0.3;
   const geometry = new THREE.ConeGeometry(radius, height, 32);
-  //by defualt the image will be render in the middle, so we need to push half of the height up to be exactly on top of the img
+  //by defualt the image will be rendered in the middle, so we need to push half of the height up to be exactly on top of the img
   geometry.translate(0, height / 2, 0);
-  const material = new THREE.MeshPhongMaterial({
-    color: 0xffffff * Math.random(),
-    shininess: 6,
-    flatShading: true,
-    transparent: 1,
-    opacity: 1
+
+  const material = new THREE.MeshNormalMaterial({
+    transparent: true,
+    opacity: 0.5,
+    side: THREE.DoubleSide
   });
+
   mesh = new THREE.Mesh(geometry, material);
   mesh.matrixAutoUpdate = false; // important we have to set this to false because we'll update the position when we track an image
   mesh.visible = false;
   scene.add(mesh);
-  
+
   // setup the image target
   const img = document.getElementById('img');
   const imgBitmap = await createImageBitmap(img);
@@ -74,9 +74,9 @@ async function init() {
     ],
     //this is for the mobile debug
     optionalFeatures: ["dom-overlay", "dom-overlay-for-handheld-ar"],
-        domOverlay: {
-          root: document.body
-        }
+    domOverlay: {
+      root: document.body
+    }
   });
   document.body.appendChild(button);
 
@@ -106,7 +106,7 @@ function render(timestamp, frame) {
       // Get the pose of the image relative to a reference space.
       const referenceSpace = renderer.xr.getReferenceSpace();
       const pose = frame.getPose(result.imageSpace, referenceSpace);
-      
+
       //checking the state of the tracking
       const state = result.trackingState;
       console.log(state);
@@ -117,7 +117,7 @@ function render(timestamp, frame) {
         // update the cone mesh when the image target is found
         mesh.matrix.fromArray(pose.transform.matrix);
       } else if (state == "emulated") {
-        mesh.visible = false; 
+        mesh.visible = false;
         console.log("Image target no longer seen")
       }
     }
