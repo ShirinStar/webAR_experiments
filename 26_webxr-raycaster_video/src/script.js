@@ -52,7 +52,7 @@ const materialOne = new THREE.MeshBasicMaterial({
   map: videoTextureOne
 });
 const cubeOne = new THREE.Mesh(geometry, materialOne);
-cubeOne.position.set(-0.5, 0, -1)
+cubeOne.position.set(-0.25, 0, -1)
 cubeOne.name = 'video1'
 scene.add(cubeOne);
 
@@ -60,7 +60,7 @@ const materialtwo = new THREE.MeshBasicMaterial({
   map: videoTextureTwo
 });
 const cubeTwo = new THREE.Mesh(geometry, materialtwo);
-cubeTwo.position.set(0.5, 0, -1)
+cubeTwo.position.set(0.25, 0, -1)
 cubeTwo.name = 'video2'
 scene.add(cubeTwo);
 
