@@ -64,12 +64,16 @@ cubeTwo.position.set(0.25, 0, -1)
 cubeTwo.name = 'video2'
 scene.add(cubeTwo);
 
+createRaycastLine()//helper raycaster line
 
 function animate() {
   renderer.setAnimationLoop(render);
 }
 
 function render() {
+
+  updateRaycasterHelperLine(); // optional function to visualize the raycaster
+
   //raycaster setting based on camera dir/pos 
   const cameraDirection = getCameraDirectionNormalized(); //length = 1
   const cameraPosition = getCameraPosition()
@@ -137,4 +141,41 @@ function getCameraDirectionNormalized() {
   cameraDirection.applyQuaternion(quat);
   cameraDirection.normalize()
   return cameraDirection;
+}
+
+/* Raycast line helper */
+function createVectorXDistanceAwayFromCamera(distanceFromCamera) {
+  const vector = new THREE.Vector3();
+  // step 1: get rotation from the camera
+  camera.getWorldDirection(vector);
+  // step 2: scale the vector a bit so it reachs out in front (not on top) of the camera
+  vector.multiplyScalar(distanceFromCamera);
+  // step 3: get the position from the camera
+  vector.add(camera.position);
+  return vector;
+}
+
+function createRaycastLine() {
+  const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
+  const lineGeometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(2 * 3); // 2 points x 3 vertices per point
+  lineGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  line = new THREE.Line(lineGeometry, lineMaterial);
+  scene.add(line);
+}
+
+// this function is just here as a helper to visualize the raycast line (as an approximate) - just to visualize
+function updateRaycasterHelperLine() {
+  const positionStart = createVectorXDistanceAwayFromCamera(0);
+  const positionEnd = createVectorXDistanceAwayFromCamera(200);
+  const positions = line.geometry.attributes.position.array;
+
+  positions[0] = positionEnd.x; // end x
+  positions[1] = positionEnd.y; // end y
+  positions[2] = positionEnd.z; // end z
+  positions[3] = positionStart.x; // origin x
+  positions[4] = positionStart.y - 0.2; // origin y. we push the origin a bit down to visualize it better
+  positions[5] = positionStart.z; // origin z
+
+  line.geometry.attributes.position.needsUpdate = true;
 }
